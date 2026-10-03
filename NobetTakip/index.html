@@ -10,9 +10,9 @@
   <title>NöbetTakip</title>
   <style>
     :root {
-      --indigo:#4338ca; --indigo2:#4f46e5; --bg:#f8fafc; --text:#0f172a;
+      --indigo:#4338ca; --bg:#f8fafc; --text:#0f172a;
       --muted:#64748b; --line:#e2e8f0; --green:#059669; --greenbg:#ecfdf5;
-      --red:#e11d48; --redbg:#fff1f2; --white:#fff;
+      --red:#e11d48; --redbg:#fff1f2;
     }
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
@@ -20,26 +20,26 @@
     body{padding-bottom:max(24px,env(safe-area-inset-bottom));-webkit-tap-highlight-color:transparent}
     button,input{font:inherit}
     button{cursor:pointer}
+    
     .header{background:var(--indigo);color:#fff;padding:calc(20px + env(safe-area-inset-top)) 20px 22px;
       border-radius:0 0 28px 28px;box-shadow:0 10px 25px rgba(67,56,202,.18)}
-    .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+    .top{display:flex;justify-content:space-between;gap:16px;align-items:center}
     .brand{font-size:24px;font-weight:800;margin:0}
-    .sub{font-size:13px;opacity:.85;margin-top:4px}
     .clock{text-align:right}.clock strong{display:block;font-size:19px}.clock span{font-size:12px;opacity:.85}
+    
     .days{display:flex;gap:8px;overflow:auto;margin-top:18px;padding-bottom:2px}
     .day{border:0;border-radius:12px;padding:9px 13px;background:#3730a3;color:#c7d2fe;font-weight:700;white-space:nowrap}
     .day.active{background:#fff;color:var(--indigo);box-shadow:0 3px 10px rgba(0,0,0,.12)}
+    
     .wrap{max-width:520px;margin:0 auto;padding:18px 14px}
-    .panel,.card,.empty{background:#fff;border:1px solid #edf2f7;border-radius:20px;box-shadow:0 2px 12px rgba(15,23,42,.04)}
+    .panel, .empty{background:#fff;border:1px solid #edf2f7;border-radius:20px;box-shadow:0 2px 12px rgba(15,23,42,.04)}
     .panel{padding:16px;margin-bottom:16px}
-    .panelrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .panel h2{font-size:14px;margin:0}
     .hint{font-size:12px;color:var(--muted);line-height:1.45;margin:8px 0 0}
     .file{width:100%;margin-top:12px;color:var(--muted)}
-    .clear{border:0;border-radius:10px;background:#ffe4e6;color:#be123c;padding:7px 9px;font-size:11px;font-weight:800}
-    .statusline{font-size:12px;color:var(--muted);margin:4px 2px 14px}
     
-    /* YENİ: Akordeon (Lokasyon Grupları) Stilleri */
+    .clear-btn{border:0;border-radius:10px;background:#ffe4e6;color:#be123c;padding:10px 14px;font-size:13px;font-weight:800; width: 100%; margin-top: 20px;}
+    
     .loc-group {
       background: #fff;
       border: 1px solid var(--line);
@@ -63,22 +63,11 @@
     }
     .loc-summary::-webkit-details-marker { display: none; }
     .loc-summary:active { background: #f1f5f9; }
-    .loc-group[open] .loc-summary {
-      border-bottom: 1px solid var(--line);
-      background: #fff;
-    }
+    .loc-group[open] .loc-summary { border-bottom: 1px solid var(--line); background: #fff; }
     .loc-title { display: flex; align-items: center; gap: 6px; }
-    .loc-badge {
-      background: #e0e7ff;
-      color: #3730a3;
-      padding: 4px 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 800;
-    }
     .loc-content { padding: 16px 14px 4px 14px; background: #fff; }
 
-    .card{padding:15px;margin-bottom:12px;border:2px solid #f1f5f9;transition:.15s; box-shadow: none;}
+    .card{padding:15px;margin-bottom:12px;border:2px solid #f1f5f9;border-radius: 16px; transition:.15s; box-shadow: none;}
     .card.present{border-color:#a7f3d0;background:var(--greenbg)}
     .card.absent{border-color:#fecdd3;background:var(--redbg)}
     .cardhead{display:flex;align-items:flex-start;gap:12px}
@@ -91,19 +80,15 @@
     .btn.present.active{background:var(--green);border-color:var(--green);color:#fff}
     .btn.absent.active{background:var(--red);border-color:var(--red);color:#fff}
     .mailagain{display:block;margin-top:10px;text-align:center;border-radius:13px;background:var(--red);color:white;text-decoration:none;padding:11px;font-weight:800;font-size:13px}
+    
     .empty{padding:28px 18px;text-align:center;color:var(--muted)}
     .empty b{display:block;color:#475569;margin-bottom:5px}
-    .notice{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:14px;padding:11px 12px;font-size:12px;line-height:1.45;margin-bottom:14px}
-    .breakbadge{display:inline-block;background:#eef2ff;color:#4338ca;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:800;margin-left:4px}
   </style>
 </head>
 <body>
 <header class="header">
   <div class="top">
-    <div>
-      <h1 class="brand">🛡️ NöbetTakip</h1>
-      <div class="sub">Müdür Yardımcısı Paneli</div>
-    </div>
+    <h1 class="brand">🛡️ NöbetTakip</h1>
     <div class="clock">
       <strong id="currentTime">00:00</strong>
       <span id="currentDate">Tarih</span>
@@ -113,21 +98,13 @@
 </header>
 
 <main class="wrap">
-  <div class="notice">
-    Bu sürüm veritabanı kullanmaz. Nöbet çizelgesi ve teneffüs saatleri yalnızca bu cihazda saklanır.
-    <b>Geldi/Gelmedi bilgileri kaydedilmez</b>; sayfa kapanınca sıfırlanır.
-  </div>
-
-  <section class="panel">
-    <div class="panelrow">
-      <h2>📄 Nöbet Excel'ini Yükle</h2>
-      <button class="clear" onclick="clearSchedule()">Listeyi Sil</button>
-    </div>
+  <!-- Yükleme Paneli (Sadece veri yoksa görünür) -->
+  <section class="panel" id="uploadPanel">
+    <h2>📄 Nöbet Excel'ini Yükle</h2>
     <p class="hint">.xlsx veya .xlsm dosyanızı seçin. “NÖBET” ve “TENEFFÜS” sayfaları otomatik okunur.</p>
     <input class="file" type="file" id="excel-upload" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroEnabled.12">
   </section>
 
-  <div id="statusLine" class="statusline"></div>
   <div id="app-content"></div>
 </main>
 
@@ -139,7 +116,7 @@ const days = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 
 let weeklySchedule = readJSON("nobet_weekly_schedule") || {Pazartesi:[],Salı:[],Çarşamba:[],Perşembe:[],Cuma:[]};
 let breakTimes = readJSON("nobet_breaks") || [];
-const sessionStatus = new Map();
+const sessionStatus = new Map(); // KALICI DEĞİL
 
 const dow = new Date().getDay();
 let activeDay = (dow >= 1 && dow <= 5) ? days[dow - 1] : "Pazartesi";
@@ -157,9 +134,9 @@ function updateTime(){
   const now = new Date();
   document.getElementById("currentTime").textContent = now.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
   document.getElementById("currentDate").textContent = now.toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"});
-  updateStatusLine();
 }
 setInterval(updateTime, 1000);
+updateTime();
 
 function getCurrentBreakName(){
   if (!breakTimes.length) return "ilgili nöbet";
@@ -170,11 +147,6 @@ function getCurrentBreakName(){
   }
   return "ilgili nöbet";
 }
-function updateStatusLine(){
-  const el = document.getElementById("statusLine");
-  const b = getCurrentBreakName();
-  el.innerHTML = `Seçili gün: <b>${activeDay}</b> <span class="breakbadge">${escapeHtml(b)}</span>`;
-}
 
 /* ---------------------- Gün sekmeleri ---------------------- */
 function renderDayTabs(){
@@ -184,7 +156,7 @@ function renderDayTabs(){
     const b = document.createElement("button");
     b.className = "day" + (day === activeDay ? " active" : "");
     b.textContent = day;
-    b.onclick = () => { activeDay = day; renderDayTabs(); renderTeachers(); updateStatusLine(); };
+    b.onclick = () => { activeDay = day; renderDayTabs(); renderTeachers(); };
     box.appendChild(b);
   });
 }
@@ -213,7 +185,7 @@ Bugün (${dateStr}), ${currentBreak} saatinde "${teacher.location}" alanındaki 
 }
 function markPresent(id, locKey){
   sessionStatus.set(id,"present");
-  renderTeachers(locKey); // Açık olan sekmeyi korumak için
+  renderTeachers(locKey);
 }
 function markAbsentAndMail(id, locKey){
   const teacher = (weeklySchedule[activeDay]||[]).find(t=>t.id===id);
@@ -421,8 +393,6 @@ document.getElementById("excel-upload").addEventListener("change", async functio
 
     saveSchedule();
     renderTeachers();
-    updateStatusLine();
-    alert("Nöbet çizelgesi yüklendi.");
   }catch(err){
     console.error(err);
     alert(err && err.message ? err.message : "Excel okunurken hata oluştu.");
@@ -432,14 +402,13 @@ document.getElementById("excel-upload").addEventListener("change", async functio
 });
 
 function clearSchedule(){
-  if(!confirm("Bu cihazdaki nöbet çizelgesi ve teneffüs saatleri silinsin mi?")) return;
+  if(!confirm("Çizelgeyi sıfırlamak istediğinize emin misiniz?")) return;
   weeklySchedule={Pazartesi:[],Salı:[],Çarşamba:[],Perşembe:[],Cuma:[]};
   breakTimes=[];
   sessionStatus.clear();
   localStorage.removeItem("nobet_weekly_schedule");
   localStorage.removeItem("nobet_breaks");
   renderTeachers();
-  updateStatusLine();
 }
 
 /* ---------------------- Arayüz (Akordeon Gruplama) ---------------------- */
@@ -447,44 +416,46 @@ function escapeHtml(v){
   return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-// openLoc parametresi, sayfa yenilendiğinde hangi sekmenin açık kalacağını belirler
 function renderTeachers(openLoc = null){
-  const box=document.getElementById("app-content");
-  const list=weeklySchedule[activeDay]||[];
-  const empty=Object.values(weeklySchedule).every(x=>x.length===0);
+  const box = document.getElementById("app-content");
+  const uploadPanel = document.getElementById("uploadPanel");
   
+  const list = weeklySchedule[activeDay]||[];
+  const empty = Object.values(weeklySchedule).every(x=>x.length===0);
+  
+  // Eğer liste boşsa yükleme panelini göster, doluysa gizle
   if(empty){
+    uploadPanel.style.display = "block";
     box.innerHTML='<div class="empty"><b>Henüz nöbet çizelgesi yok.</b>Yukarıdan Excel dosyanızı seçin.</div>';
     return;
+  } else {
+    uploadPanel.style.display = "none";
   }
+  
   if(!list.length){
-    box.innerHTML=`<div class="empty"><b>${escapeHtml(activeDay)} için nöbetçi bulunmuyor.</b></div>`;
+    box.innerHTML=`<div class="empty"><b>${escapeHtml(activeDay)} için nöbetçi bulunmuyor.</b></div>
+                   <button class="clear-btn" onclick="clearSchedule()">Çizelgeyi Sıfırla</button>`;
     return;
   }
 
-  // 1. Öğretmenleri Nöbet Yerlerine Göre Grupla
   const groupedByLocation = {};
   list.forEach(t => {
     if(!groupedByLocation[t.location]) groupedByLocation[t.location] = [];
     groupedByLocation[t.location].push(t);
   });
 
-  // 2. Akordeon HTML'ini oluştur
   let html = "";
   for(const [location, teachers] of Object.entries(groupedByLocation)) {
-    // İşlem yapıldıktan sonra açık kalması için kontrol
     const isOpen = openLoc === location ? "open" : "";
     
     html += `
       <details class="loc-group" ${isOpen}>
         <summary class="loc-summary">
           <div class="loc-title">📍 ${escapeHtml(location)}</div>
-          <span class="loc-badge">${teachers.length} Öğretmen</span>
         </summary>
         <div class="loc-content">
     `;
 
-    // Her lokasyonun içindeki öğretmen kartlarını oluştur
     teachers.forEach(t => {
       const st = getStatus(t.id);
       const mail = generateMailtoLink(t);
@@ -498,7 +469,6 @@ function renderTeachers(openLoc = null){
             </div>
           </div>
           <div class="actions">
-            <!-- Fonksiyonlara locKey parametresi (t.location) eklendi -->
             <button class="btn present ${st==="present"?"active":""}" onclick='markPresent(${JSON.stringify(t.id)}, ${JSON.stringify(t.location)})'>✓ Geldi</button>
             <button class="btn absent ${st==="absent"?"active":""}" onclick='markAbsentAndMail(${JSON.stringify(t.id)}, ${JSON.stringify(t.location)})'>✕ Gelmedi</button>
           </div>
@@ -509,12 +479,14 @@ function renderTeachers(openLoc = null){
     html += `</div></details>`;
   }
   
+  // Sıfırlama Butonunu En Alta Ekliyoruz
+  html += `<button class="clear-btn" onclick="clearSchedule()">Çizelgeyi Sıfırla</button>`;
+  
   box.innerHTML = html;
 }
 
 renderDayTabs();
 renderTeachers();
-updateTime();
 </script>
 </body>
 </html>
