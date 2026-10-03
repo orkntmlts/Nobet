@@ -38,7 +38,47 @@
     .file{width:100%;margin-top:12px;color:var(--muted)}
     .clear{border:0;border-radius:10px;background:#ffe4e6;color:#be123c;padding:7px 9px;font-size:11px;font-weight:800}
     .statusline{font-size:12px;color:var(--muted);margin:4px 2px 14px}
-    .card{padding:15px;margin-bottom:12px;border:2px solid #f1f5f9;transition:.15s}
+    
+    /* YENİ: Akordeon (Lokasyon Grupları) Stilleri */
+    .loc-group {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(15,23,42,.03);
+    }
+    .loc-summary {
+      padding: 16px;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--indigo);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      transition: background 0.2s;
+    }
+    .loc-summary::-webkit-details-marker { display: none; }
+    .loc-summary:active { background: #f1f5f9; }
+    .loc-group[open] .loc-summary {
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }
+    .loc-title { display: flex; align-items: center; gap: 6px; }
+    .loc-badge {
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .loc-content { padding: 16px 14px 4px 14px; background: #fff; }
+
+    .card{padding:15px;margin-bottom:12px;border:2px solid #f1f5f9;transition:.15s; box-shadow: none;}
     .card.present{border-color:#a7f3d0;background:var(--greenbg)}
     .card.absent{border-color:#fecdd3;background:var(--redbg)}
     .cardhead{display:flex;align-items:flex-start;gap:12px}
@@ -46,7 +86,6 @@
     .meta{min-width:0;flex:1}
     .name{font-weight:800;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .email{font-size:11px;color:#94a3b8;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .loc{font-size:12px;color:var(--muted);margin-top:4px}
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
     .btn{border:1px solid var(--line);border-radius:13px;background:#f8fafc;padding:12px 10px;font-weight:800;color:#475569}
     .btn.present.active{background:var(--green);border-color:var(--green);color:#fff}
@@ -100,7 +139,7 @@ const days = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma"];
 
 let weeklySchedule = readJSON("nobet_weekly_schedule") || {Pazartesi:[],Salı:[],Çarşamba:[],Perşembe:[],Cuma:[]};
 let breakTimes = readJSON("nobet_breaks") || [];
-const sessionStatus = new Map(); // KALICI DEĞİL
+const sessionStatus = new Map();
 
 const dow = new Date().getDay();
 let activeDay = (dow >= 1 && dow <= 5) ? days[dow - 1] : "Pazartesi";
@@ -172,23 +211,20 @@ Bugün (${dateStr}), ${currentBreak} saatinde "${teacher.location}" alanındaki 
   const body = encodeURIComponent(bodyText).replace(/%0A/g,"%0D%0A");
   return `mailto:${toEmail}?cc=${ccEmails}&subject=${subject}&body=${body}`;
 }
-function markPresent(id){
+function markPresent(id, locKey){
   sessionStatus.set(id,"present");
-  renderTeachers();
+  renderTeachers(locKey); // Açık olan sekmeyi korumak için
 }
-function markAbsentAndMail(id){
+function markAbsentAndMail(id, locKey){
   const teacher = (weeklySchedule[activeDay]||[]).find(t=>t.id===id);
   if(!teacher) return;
   sessionStatus.set(id,"absent");
-  renderTeachers();
-  // Doğrudan iOS varsayılan e-posta uygulamasına aktar.
+  renderTeachers(locKey);
   window.location.href = generateMailtoLink(teacher);
 }
 function getStatus(id){ return sessionStatus.get(id) || "pending"; }
 
-/* ---------------------- Minimal XLSX okuyucu ----------------------
-   Harici kütüphane yok. XLSX/XLSM içindeki ZIP + XML dosyalarını okur.
------------------------------------------------------------------- */
+/* ---------------------- Minimal XLSX okuyucu ---------------------- */
 async function unzipEntries(arrayBuffer){
   const bytes = new Uint8Array(arrayBuffer);
   const view = new DataView(arrayBuffer);
@@ -290,7 +326,6 @@ function parseSheetRows(xml, sharedStrings){
 }
 async function readWorkbook(file){
   const entries = await unzipEntries(await file.arrayBuffer());
-
   let sharedStrings=[];
   const ss = xmlText(entries,"xl/sharedStrings.xml");
   if(ss){
@@ -299,14 +334,12 @@ async function readWorkbook(file){
       Array.from(si.getElementsByTagName("t")).map(t=>t.textContent||"").join("")
     );
   }
-
   const wb = parseXml(xmlText(entries,"xl/workbook.xml"));
   const rels = parseXml(xmlText(entries,"xl/_rels/workbook.xml.rels"));
   const relMap = {};
   Array.from(rels.getElementsByTagName("Relationship")).forEach(r=>{
     relMap[r.getAttribute("Id")] = r.getAttribute("Target");
   });
-
   const result=[];
   Array.from(wb.getElementsByTagName("sheet")).forEach(s=>{
     const name=s.getAttribute("name")||"";
@@ -389,7 +422,7 @@ document.getElementById("excel-upload").addEventListener("change", async functio
     saveSchedule();
     renderTeachers();
     updateStatusLine();
-    alert("Nöbet çizelgesi iPhone'a yüklendi.");
+    alert("Nöbet çizelgesi yüklendi.");
   }catch(err){
     console.error(err);
     alert(err && err.message ? err.message : "Excel okunurken hata oluştu.");
@@ -409,14 +442,17 @@ function clearSchedule(){
   updateStatusLine();
 }
 
-/* ---------------------- Arayüz ---------------------- */
+/* ---------------------- Arayüz (Akordeon Gruplama) ---------------------- */
 function escapeHtml(v){
   return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-function renderTeachers(){
+
+// openLoc parametresi, sayfa yenilendiğinde hangi sekmenin açık kalacağını belirler
+function renderTeachers(openLoc = null){
   const box=document.getElementById("app-content");
   const list=weeklySchedule[activeDay]||[];
   const empty=Object.values(weeklySchedule).every(x=>x.length===0);
+  
   if(empty){
     box.innerHTML='<div class="empty"><b>Henüz nöbet çizelgesi yok.</b>Yukarıdan Excel dosyanızı seçin.</div>';
     return;
@@ -425,25 +461,55 @@ function renderTeachers(){
     box.innerHTML=`<div class="empty"><b>${escapeHtml(activeDay)} için nöbetçi bulunmuyor.</b></div>`;
     return;
   }
-  box.innerHTML=list.map(t=>{
-    const st=getStatus(t.id);
-    const mail=generateMailtoLink(t);
-    return `<article class="card ${st}">
-      <div class="cardhead">
-        <div class="avatar">👤</div>
-        <div class="meta">
-          <div class="name">${escapeHtml(t.name)}</div>
-          <div class="email">${escapeHtml(t.emailPrefix)}@${emailDomain}</div>
-          <div class="loc">📍 ${escapeHtml(t.location)}</div>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn present ${st==="present"?"active":""}" onclick='markPresent(${JSON.stringify(t.id)})'>✓ Geldi</button>
-        <button class="btn absent ${st==="absent"?"active":""}" onclick='markAbsentAndMail(${JSON.stringify(t.id)})'>✕ Gelmedi</button>
-      </div>
-      ${st==="absent" ? `<a class="mailagain" href="${mail}">✉️ Maili tekrar aç</a>` : ""}
-    </article>`;
-  }).join("");
+
+  // 1. Öğretmenleri Nöbet Yerlerine Göre Grupla
+  const groupedByLocation = {};
+  list.forEach(t => {
+    if(!groupedByLocation[t.location]) groupedByLocation[t.location] = [];
+    groupedByLocation[t.location].push(t);
+  });
+
+  // 2. Akordeon HTML'ini oluştur
+  let html = "";
+  for(const [location, teachers] of Object.entries(groupedByLocation)) {
+    // İşlem yapıldıktan sonra açık kalması için kontrol
+    const isOpen = openLoc === location ? "open" : "";
+    
+    html += `
+      <details class="loc-group" ${isOpen}>
+        <summary class="loc-summary">
+          <div class="loc-title">📍 ${escapeHtml(location)}</div>
+          <span class="loc-badge">${teachers.length} Öğretmen</span>
+        </summary>
+        <div class="loc-content">
+    `;
+
+    // Her lokasyonun içindeki öğretmen kartlarını oluştur
+    teachers.forEach(t => {
+      const st = getStatus(t.id);
+      const mail = generateMailtoLink(t);
+      html += `
+        <article class="card ${st}">
+          <div class="cardhead">
+            <div class="avatar">👤</div>
+            <div class="meta">
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="email">${escapeHtml(t.emailPrefix)}@${emailDomain}</div>
+            </div>
+          </div>
+          <div class="actions">
+            <!-- Fonksiyonlara locKey parametresi (t.location) eklendi -->
+            <button class="btn present ${st==="present"?"active":""}" onclick='markPresent(${JSON.stringify(t.id)}, ${JSON.stringify(t.location)})'>✓ Geldi</button>
+            <button class="btn absent ${st==="absent"?"active":""}" onclick='markAbsentAndMail(${JSON.stringify(t.id)}, ${JSON.stringify(t.location)})'>✕ Gelmedi</button>
+          </div>
+          ${st==="absent" ? `<a class="mailagain" href="${mail}">✉️ Maili tekrar aç</a>` : ""}
+        </article>`;
+    });
+
+    html += `</div></details>`;
+  }
+  
+  box.innerHTML = html;
 }
 
 renderDayTabs();
